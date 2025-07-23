@@ -479,6 +479,37 @@ async def advantage_spoll_choker(bot, query):
 
 @Client.on_callback_query()
 async def cb_handler(client: Client, query: CallbackQuery):
+    if query.data.startswith("ask_delete_db_"):
+        if query.from_user.id not in ADMINS:
+            return await query.answer("This is not for you!", show_alert=True)
+        db_id = query.data.split("_")[-1]
+        if db_id == '1':
+            text = "Are you sure you want to delete all files from Database 1? This action is irreversible."
+        elif db_id == '2':
+            text = "Are you sure you want to delete all files from Database 2? This action is irreversible."
+        else: # 'all'
+            text = "Are you sure you want to delete all files from BOTH databases? This action is irreversible."
+        btn = [[
+            InlineKeyboardButton("YES, I AM SURE", callback_data=f"confirm_delete_db_{db_id}")
+        ],[
+            InlineKeyboardButton("NO, CANCEL", callback_data="close_data")
+        ]]
+        await query.message.edit(text, reply_markup=InlineKeyboardMarkup(btn))
+
+    elif query.data.startswith("confirm_delete_db_"):
+        if query.from_user.id not in ADMINS:
+            return await query.answer("This is not for you!", show_alert=True)
+        db_id = query.data.split("_")[-1]
+        await query.message.edit('Deleting files... Please wait.')
+        from database.ia_filterdb import delete_all_files_from_db
+        deleted_count = await delete_all_files_from_db(db_id)
+        if db_id == '1':
+            db_name = "Database 1"
+        elif db_id == '2':
+            db_name = "Database 2"
+        else: # 'all'
+            db_name = "Both Databases"
+        await query.message.edit(f'Successfully deleted {deleted_count} files from {db_name}.')
     if query.data == "close_data":
         try:
             user = query.message.reply_to_message.from_user.id
