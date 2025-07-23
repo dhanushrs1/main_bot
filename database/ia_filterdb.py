@@ -70,7 +70,7 @@ async def save_file(media):
             logger.error(f'your FILES_DATABASE_URL is already full, add SECOND_FILES_DATABASE_URL')
             return 'err'
         
-        
+
 async def get_search_results(query, max_results=MAX_BTN, offset=0, lang=None):
     query = str(query).strip()
     if not query:
@@ -141,6 +141,18 @@ async def delete_files(query):
     
     return total_deleted
 
+async def delete_all_files_from_db(db_identifier):
+    """
+    Deletes all documents from the specified database collection.
+    :param db_identifier: '1' for the first DB, '2' for the second, 'all' for both.
+    """
+    deleted_count = 0
+    if db_identifier in ['1', 'all']:
+        deleted_count += collection.delete_many({}).deleted_count
+    if db_identifier in ['2', 'all'] and SECOND_FILES_DATABASE_URL:
+        deleted_count += second_collection.delete_many({}).deleted_count
+    return deleted_count
+
 async def get_file_details(query):
     file_details = collection.find_one({'_id': query})
     if not file_details and SECOND_FILES_DATABASE_URL:
@@ -159,6 +171,7 @@ def encode_file_id(s: bytes) -> str:
                 n = 0
             r += bytes([i])
     return base64.urlsafe_b64encode(r).decode().rstrip("=")
+
 
 def unpack_new_file_id(new_file_id):
     decoded = FileId.decode(new_file_id)
