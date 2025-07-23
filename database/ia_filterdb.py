@@ -39,17 +39,17 @@ def db_count_documents():
 
 async def save_file(media):
     """Save file in database"""
-    file_id = unpack_new_file_id(media.file_id)
+    file_id = media.file_id  # Use the original file_id
     file_name = re.sub(r"@\w+|(_|\-|\.|\+)", " ", str(media.file_name))
     file_caption = re.sub(r"@\w+|(_|\-|\.|\+)", " ", str(media.caption))
-    
+
     document = {
         '_id': file_id,
         'file_name': file_name,
         'file_size': media.file_size,
         'caption': file_caption
     }
-    
+
     try:
         collection.insert_one(document)
         logger.info(f'Saved - {file_name}')
@@ -69,7 +69,8 @@ async def save_file(media):
         else:
             logger.error(f'your FILES_DATABASE_URL is already full, add SECOND_FILES_DATABASE_URL')
             return 'err'
-
+        
+        
 async def get_search_results(query, max_results=MAX_BTN, offset=0, lang=None):
     query = str(query).strip()
     if not query:
