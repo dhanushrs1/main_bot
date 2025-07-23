@@ -507,80 +507,18 @@ async def add_prm(bot, message):
         return await message.reply('Premium feature was disabled')
     try:
         _, user_id, d = message.text.split(' ')
-    except:
+    except Exception:
         return await message.reply('Usage: /add_prm user_id 1d')
     try:
         d = int(d[:-1])
-    except:
+    except Exception:
         return await message.reply('Not valid days, use: 1d, 7d, 30d, 365d, etc...')
     try:
-        user = await bot.get_users(user_id)
+        expire = datetime.now() + timedelta(days=d)
+        db.add_premium(int(user_id), expire)
+        await message.reply(f"Added premium for user {user_id} for {d} days.")
     except Exception as e:
-        return await message.reply(f'Error: {e}')
-    if user.id in ADMINS:
-        return await message.reply('ADMINS is already premium')
-    if not await is_premium(user.id, bot):
-        mp = db.get_plan(user.id)
-        ex = datetime.now() + timedelta(days=d)
-        mp['expire'] = ex
-        mp['plan'] = f'{d} days'
-        mp['premium'] = True
-        db.update_plan(user.id, mp)
-        await message.reply(f"Given premium to {user.mention}\nExpire: {ex.strftime('%Y.%m.%d %H:%M:%S')}")
-        try:
-            await bot.send_message(user.id, f"Your now premium user\nExpire: {ex.strftime('%Y.%m.%d %H:%M:%S')}")
-        except:
-            pass
-    else:
-        await message.reply(f"{user.mention} is already premium user")
-
-
-
-@Client.on_message(filters.command('rm_prm') & filters.user(ADMINS))
-async def rm_prm(bot, message):
-    if not IS_PREMIUM:
-        return await message.reply('Premium feature was disabled')
-    try:
-        _, user_id = message.text.split(' ')
-    except:
-        return await message.reply('Usage: /rm_prm user_id')
-    try:
-        user = await bot.get_users(user_id)
-    except Exception as e:
-        return await message.reply(f'Error: {e}')
-    if user.id in ADMINS:
-        return await message.reply('ADMINS is already premium')
-    if not await is_premium(user.id, bot):
-        await message.reply(f"{user.mention} is not premium user")
-    else:
-        mp = db.get_plan(user.id)
-        mp['expire'] = ''
-        mp['plan'] = ''
-        mp['premium'] = False
-        db.update_plan(user.id, mp)
-        await message.reply(f"{user.mention} is no longer premium user")
-        try:
-            await bot.send_message(user.id, "Your premium plan was removed by admin")
-        except:
-            pass
-
-
-@Client.on_message(filters.command('prm_list') & filters.user(ADMINS))
-async def prm_list(bot, message):
-    if not IS_PREMIUM:
-        return await message.reply('Premium feature was disabled')
-    tx = await message.reply('Getting list of premium users')
-    pr = [i['id'] for i in db.get_premium_users() if i['status']['premium']]
-    t = 'premium users saved in database are:\n\n'
-    for p in pr:
-        try:
-            u = await bot.get_users(p)
-            t += f"{u.mention} : {p}\n"
-        except:
-            t += f"{p}\n"
-    await tx.edit_text(t)
-
-
+        await message.reply(f"Error: {e}")
 @Client.on_message(filters.command('set_fsub') & filters.user(ADMINS))
 async def set_fsub(bot, message):
     try:
