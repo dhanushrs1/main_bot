@@ -207,7 +207,13 @@ async def start(client, message):
         ],[
             InlineKeyboardButton("📍 ʜᴏᴡ ᴛᴏ ᴏᴘᴇɴ ʟɪɴᴋ 📍", url=settings['tutorial'])
         ]]
-        await message.reply(f"[{get_size(files['file_size'])}] {files['file_name']}\n\nYour file is ready, Please get using this link. 👍", reply_markup=InlineKeyboardMarkup(btn), protect_content=True)
+        from utils import send_message_with_retry
+        await send_message_with_retry(
+            client=client,
+            chat_id=message.from_user.id,
+            text=f"[{get_size(files['file_size'])}] {files['file_name']}\n\nYour file is ready, Please get using this link. 👍",
+            reply_markup=InlineKeyboardMarkup(btn)
+        )
         return
             
     CAPTION = settings['caption']
@@ -232,13 +238,22 @@ async def start(client, message):
         ],[
             InlineKeyboardButton('⁉️ ᴄʟᴏsᴇ ⁉️', callback_data='close_data')
         ]]
-    vp = await client.send_cached_media(
-        chat_id=message.from_user.id,
-        file_id=file_id,
-        caption=f_caption,
-        protect_content=False,
-        reply_markup=InlineKeyboardMarkup(btn)
-    )
+    # FloodWait handling for media
+    from hydrogram.errors import FloodWait
+    while True:
+        try:
+            vp = await client.send_cached_media(
+                chat_id=message.from_user.id,
+                file_id=file_id,
+                caption=f_caption,
+                protect_content=False,
+                reply_markup=InlineKeyboardMarkup(btn)
+            )
+            break
+        except FloodWait as e:
+            await asyncio.sleep(e.value)
+        except Exception as e:
+            raise
     time = get_readable_time(PM_FILE_DELETE_TIME)
     msg = await vp.reply(f"Nᴏᴛᴇ: Tʜɪs ᴍᴇssᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴅᴇʟᴇᴛᴇ ɪɴ {time} ᴛᴏ ᴀᴠᴏɪᴅ ᴄᴏᴘʏʀɪɢʜᴛs. Sᴀᴠᴇ ᴛʜᴇ ғɪʟᴇ ᴛᴏ sᴏᴍᴇᴡʜᴇʀᴇ ᴇʟsᴇ")
     await asyncio.sleep(PM_FILE_DELETE_TIME)
