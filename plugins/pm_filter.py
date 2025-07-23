@@ -1006,11 +1006,15 @@ async def cb_handler(client: Client, query: CallbackQuery):
     elif query.data.startswith("send_all"):
         ident, key, req = query.data.split("#")
         if int(req) != query.from_user.id:
-            return await query.answer(f"Hello {query.from_user.first_name},\nDon't Click Other Results!", show_alert=True)        
+            return await query.answer(f"Hello {query.from_user.first_name},\nDon't Click Other Results!", show_alert=True)
         files = temp.FILES.get(key)
         if not files:
             await query.answer(f"Hello {query.from_user.first_name},\nSend New Request Again!", show_alert=True)
-            return        
+            return
+        # Add a delay to avoid flood waits
+        for file in files:
+            # Place your file sending logic here (copy from your /start handler if needed)
+            await asyncio.sleep(2)  # Adjust delay as needed
         await query.answer(url=f"https://t.me/{temp.U_NAME}?start=all_{query.message.chat.id}_{key}")
 
     elif query.data == "unmute_all_members":
