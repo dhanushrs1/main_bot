@@ -1,3 +1,21 @@
+async def send_message_with_retry(client, chat_id, text, reply_markup=None):
+    """
+    A wrapper function to send messages with automatic FloodWait handling.
+    """
+    while True:
+        try:
+            return await client.send_message(
+                chat_id=chat_id,
+                text=text,
+                reply_markup=reply_markup,
+                disable_web_page_preview=True
+            )
+        except FloodWait as e:
+            print(f"FloodWait error: waiting for {e.value} seconds.")
+            await asyncio.sleep(e.value)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
 from hydrogram.errors import UserNotParticipant, FloodWait
 from info import LONG_IMDB_DESCRIPTION, ADMINS, IS_PREMIUM, TIME_ZONE
 from imdb import Cinemagoer
