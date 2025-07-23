@@ -11,7 +11,7 @@ from hydrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from database.ia_filterdb import db_count_documents, second_db_count_documents, get_file_details, delete_files
 from database.users_chats_db import db
 from datetime import datetime, timedelta
-from info import IS_PREMIUM, PRE_DAY_AMOUNT, RECEIPT_SEND_USERNAME, URL, BIN_CHANNEL, SECOND_FILES_DATABASE_URL, STICKERS, INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, IS_STREAM, REACTIONS, PM_FILE_DELETE_TIME
+from info import IS_PREMIUM, PRE_DAY_AMOUNT, RECEIPT_SEND_USERNAME, URL, BIN_CHANNEL, SECOND_FILES_DATABASE_URL, STICKERS, INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, IS_STREAM, REACTIONS, PM_FILE_DELETE_TIME, SECOND_FILES_DATABASE_URL
 from utils import is_premium, upload_image, get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, get_verify_status, update_verify_status, save_group_settings, temp, get_readable_time, get_wish, get_seconds
 
 async def del_stk(s):
@@ -402,6 +402,35 @@ async def delete_file(bot, message):
     await message.reply_text(f"Do you want to delete all: {query} ?", reply_markup=InlineKeyboardMarkup(btn))
  
 
+@Client.on_message(filters.command('delete_all') & filters.user(ADMINS))
+async def delete_all(bot, message):
+    if message.from_user.id not in ADMINS:
+        return
+
+    total_files_db1 = db_count_documents()
+    buttons = []
+    
+    # Button for the first database
+    buttons.append([
+        InlineKeyboardButton(f"Database 1 ({total_files_db1} files)", callback_data="ask_delete_db_1")
+    ])
+
+    # Check if the second database is configured
+    if SECOND_FILES_DATABASE_URL:
+        total_files_db2 = second_db_count_documents()
+        buttons.append([
+            InlineKeyboardButton(f"Database 2 ({total_files_db2} files)", callback_data="ask_delete_db_2")
+        ])
+        buttons.append([
+            InlineKeyboardButton(f"Both Databases ({total_files_db1 + total_files_db2} files)", callback_data="ask_delete_db_all")
+        ])
+    
+    buttons.append([InlineKeyboardButton("CLOSE", callback_data="close_data")])
+
+    await message.reply_text(
+        "Please select which database you would like to clear all indexed files from.",
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
 
 @Client.on_message(filters.command('img_2_link'))
 async def img_2_link(bot, message):
