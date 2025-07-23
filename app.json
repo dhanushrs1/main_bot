@@ -1,0 +1,12 @@
+{
+    "name": "main-Bot",
+    "description": "A Telegram bot for main movies.",
+    "repository": "https://github.com/HA-Bots/main-Bot",
+    "keywords": ["telegram", "bot", "filter", "automation"],
+    "buildpacks": [
+      {
+        "url": "heroku/python"
+      }
+    ]
+  }
+  
