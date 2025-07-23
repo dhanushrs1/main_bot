@@ -33,5 +33,6 @@ async def media(bot, message):
                     chat_id=DUMP_CHANNEL,
                     caption=caption_to_send
                 ))
+                await asyncio.sleep(2)  # Add delay to avoid flood wait
             except Exception as e:
                 print(f"Error creating copy task for dump channel: {e}")
