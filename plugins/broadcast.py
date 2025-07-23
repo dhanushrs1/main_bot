@@ -48,6 +48,7 @@ async def users_broadcast(bot, message):
             elif sts == 'Error':
                 failed += 1
             done += 1
+            await asyncio.sleep(1)  # Add delay to avoid flood wait
             if not done % 20:
                 btn = [[
                     InlineKeyboardButton('CANCEL', callback_data='broadcast_cancel#users')
@@ -86,6 +87,7 @@ async def groups_broadcast(bot, message):
             elif sts == 'Error':
                 failed += 1
             done += 1
+            await asyncio.sleep(1)  # Add delay to avoid flood wait
             if not done % 20:
                 btn = [[
                     InlineKeyboardButton('CANCEL', callback_data='broadcast_cancel#groups')
